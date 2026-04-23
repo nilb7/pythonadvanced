@@ -1,6 +1,14 @@
-def funksioni():
-    global name
-    name = "nili"
+def test():
+    name = "Lisa"
     print(name)
 
-funksioni()
+test()
+
+shkolla = "Digitalschool"
+
+def test2():
+    global shkolla
+    shkolla = "Harvard"
+
+test2()
+print(shkolla)
