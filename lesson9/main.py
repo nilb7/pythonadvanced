@@ -1,0 +1,16 @@
+class Kerri:
+
+    def __init__(self, emri, viti, modeli):
+        self.emri = emri
+        self.viti = viti
+        sefl.modeli = modeli
+
+
+    def rritjeShpejtesis(self):
+        print("SHpejtesia eshte duke u rritur")
+
+    def nalu(self):
+        print("kerri u ndal")
+
+    def info(self):
+        print(f"{self.emri} eshte vetur e krijuar ne vitin {self.viti}")
