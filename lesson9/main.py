@@ -3,7 +3,7 @@ class Kerri:
     def __init__(self, emri, viti, modeli):
         self.emri = emri
         self.viti = viti
-        sefl.modeli = modeli
+        self.modeli = modeli
 
 
     def rritjeShpejtesis(self):
