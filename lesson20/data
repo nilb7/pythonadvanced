@@ -1,0 +1,19 @@
+{
+  "name":"Alice",
+  "age":35,
+  "adress":{
+    "street":"pashkovasa",
+    "city":"prishtine",
+    "country":"Kosove"
+  },
+  "contacts": [
+    {
+      "type": "email",
+      "value": "nili@gmail.com"
+    },
+    {
+      "type": "phone",
+      "value": "111-222-333"
+    }
+  ]
+}
