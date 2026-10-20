@@ -1,69 +1,128 @@
-from fastapi import FastAPI,HTTPExeception,Depends
 
+
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import APIKeyHeader
-
 from pydantic import BaseModel
-
 from typing import Optional
 from dotenv import load_dotenv
 import os
+
 from app.database import get_db, init_db
 
 load_dotenv()
 
-app=FastAPI()
+app = FastAPI(title="Items API")
+
+# Initialize the database
 init_db()
 
+# API key authentication
 api_key_header = APIKeyHeader(name="api-key")
 
-def check_key(key:str=Depends(api_key_header)):
-    allowed_keys = os.getenv("API_KEYS","").split(",")
+
+def check_key(key: str = Depends(api_key_header)):
+    allowed_keys = [
+        k.strip()
+        for k in os.getenv("API_KEYS", "").split(",")
+        if k.strip()
+    ]
+
     if not key or key not in allowed_keys:
-        raise HTTPExeception(401,"Invalid API Key")
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API Key"
+        )
+
+    return key
 
 
-    class Item(BaseModel):
-        name:str
-        description:Optional[str]=None
+# Request model
+class Item(BaseModel):
+    name: str
+    description: Optional[str] = None
 
-@app.post("/items", dependencies=[Depends(check_key())])
-def create_item(item:Item):
+
+# Create an item
+@app.post("/items", dependencies=[Depends(check_key)])
+def create_item(item: Item):
     with get_db() as conn:
         cursor = conn.execute(
-            "INSERT INTO items (names,description) VALUES(?,?)",
-            (item.name,item,description)
+            "INSERT INTO items (name, description) VALUES (?, ?)",
+            (item.name, item.description)
         )
-        return {"id":cursor.lastrowid,**item.model_dump()}
+
+        return {
+            "id": cursor.lastrowid,
+            **item.model_dump()
+        }
 
 
+# Get all items
+@app.get("/items", dependencies=[Depends(check_key)])
+def get_items():
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT * FROM items"
+        ).fetchall()
+
+        return [dict(row) for row in rows]
 
 
+# Get one item by ID
+@app.get("/items/{item_id}", dependencies=[Depends(check_key)])
+def get_item(item_id: int):
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT * FROM items WHERE id = ?",
+            (item_id,)
+        ).fetchone()
+
+        if row is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Item not found"
+            )
+
+        return dict(row)
 
 
+# Update an item
+@app.put("/items/{item_id}", dependencies=[Depends(check_key)])
+def update_item(item_id: int, item: Item):
+    with get_db() as conn:
+        cursor = conn.execute(
+            "UPDATE items SET name = ?, description = ? WHERE id = ?",
+            (item.name, item.description, item_id)
+        )
+
+        if cursor.rowcount == 0:
+            raise HTTPException(
+                status_code=404,
+                detail="Item not found"
+            )
+
+        return {
+            "id": item_id,
+            **item.model_dump()
+        }
 
 
+# Delete an item
+@app.delete("/items/{item_id}", dependencies=[Depends(check_key)])
+def delete_item(item_id: int):
+    with get_db() as conn:
+        cursor = conn.execute(
+            "DELETE FROM items WHERE id = ?",
+            (item_id,)
+        )
 
+        if cursor.rowcount == 0:
+            raise HTTPException(
+                status_code=404,
+                detail="Item not found"
+            )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return {
+            "message": "Item deleted successfully",
+            "id": item_id
+        }
