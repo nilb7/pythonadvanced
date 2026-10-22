@@ -41,6 +41,9 @@ div_content = soup.find('div',id="content")
 links = div_content.find_all('a')
 
 
+    print("link")
+
+
 
 
 
